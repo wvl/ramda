@@ -523,7 +523,7 @@
 
         // --------
 
-        // (Internal use only) The basic implementation of filter.
+        // (Internal use only) The basic implementation of foldl.
         var internalFoldl = _(function(useIdx, fn, acc, list) {
             if (list && list.length === Infinity) {
                 return list.foldl(fn, acc); // TODO: figure out useIdx
@@ -831,7 +831,7 @@
 
 
         // Returns a new list by plucking the same named property off all objects in the list supplied.
-        var pluck = R.pluck = _(function(p, list) {return map(prop(p), list);});
+        var pluck = R.pluck = _(function(p, list) {return (prop(p), list);});
 
         // Returns a list that contains a flattened version of the supplied list.  For example:
         //
