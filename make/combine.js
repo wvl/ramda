@@ -1,6 +1,6 @@
 var fs = require('fs');
 
-var header = 'var ramda = (function() {' + '\n';
+var header = 'var ramda = (function() {' + '\nvar ramda = {};\n\n';
 var footer = '\n' + '    return ramda;' + '\n\n' + '}());';
 var fileHeader = '(function() {' + '\n';
 var fileFooter = '\n' + '}());' + '\n\n';
@@ -20,6 +20,7 @@ var handle = function(filename, contents, onComplete) {
         }
         var dependencies = [];
         var lines = str.split(/\r\n|\n|\r/);
+        var needsExports = false;
         contents[name] = {
             text: lines.filter(function(line) {
                 var match = line.match(/.*require\((?:'\.\/([^']*)'\)).*/);
@@ -29,39 +30,82 @@ var handle = function(filename, contents, onComplete) {
                 }
                 return true;
             }).join('\n').replace(/module\.exports\s*=\s*{([^}]+)};?/m, function(exports, lines) {
-                var results = [];
-                lines.replace(/\s*([^:\s]*):\s*([^,\s]*)/g, function(mapping, fnName, localName) {
-                    results.push('ramda.' + fnName + ' = ' + localName + ';');
-                    return mapping; // doesn't matter, using only side-effects.
-                });
-                return results.join('\n');
+                needsExports = true;
+                return 'var ' + name + ' = {' + lines + '};';
             }).replace(/module\.exports\s*=\s*([^;\b]+);?/, function(exports, fnName) {
-                return 'ramda.' + fnName + ' = ' + fnName + ';';
+                return 'return ' + fnName + ';';
             }),
             dependencies: dependencies,
-            filename: filename
+            filename: filename,
+            needsExports: needsExports
         };
         onComplete();
     })
 };
 
 var getSortOrder = function(contents) {
-    return Object.keys(contents).sort();
+    var allKeys = Object.keys(contents);
+    var sorted = [], dependencyFree = allKeys.filter(function(key){
+        return contents[key].dependencies.length === 0;
+    }).reduce(function(obj, key) {obj[key] = true; return obj; }, {});
+    while (Object.keys(dependencyFree).length) {
+        var currentKey = Object.keys(dependencyFree)[0];
+        sorted.push(currentKey);
+        delete dependencyFree[currentKey];
+        allKeys.forEach(function(key) {
+            var node = contents[key];
+            var dependencies = node.dependencies;
+            var index = dependencies.indexOf(currentKey);
+            if (index > -1) {
+                dependencies.splice(index, 1);
+                if (!dependencies.length) {dependencyFree[key] = true;}
+            }
+        });
+    }
+    if (allKeys.reduce(function(memo, key) {
+        delete contents[key].dependencies;
+        return memo.concat(contents[key].dependencies || []);
+    }, []).length) {
+        console.log("Cyclic dependency found");
+        process.exit(400);
+    }
+    return sorted;
+};
+
+var invertDependencies = function(contents) {
+    var results = {};
+    Object.keys(contents).forEach(function(key) {
+        (contents[key].dependencies || []).forEach(function(dep) {
+            (results[dep] = results[dep] || []).push(key);
+        });
+    });
+    return results;
 };
 
 var handleOutput = function(contents) {
+    var crissCross = invertDependencies(contents);
     var keys = getSortOrder(contents);
-    var text = (header + fileHeader + '    ' + keys.map(function(key) {
-        return '    ' + contents[key].text.split('\n').join('\n    ');
-    }).join(fileFooter + fileHeader) + fileFooter).split('\n').join('\n    ') + footer;
-    fs.writeFile('dist/ramda.generated.js', text, {encoding: 'utf8'}, function(err) {
-        if (err) {
+    var text = (header + keys.map(function(key) {
+        return (crissCross[key] ? 'var ' + key + ' = ' : '') + 'ramda.' + key + ' = ' + fileHeader + '    '
+            + contents[key].text.split('\n').join('\n    ') +
+            (contents[key].needsExports ? '\n\n' + '    return ' + key + ';' : '') + fileFooter;
+    }).join('\n\n')).split('\n').join('\n    ') + footer;
+    fs.mkdir("dist", function(err) {
+        if (!err || (err.code === 'EEXIST')) {
+            fs.writeFile('dist/ramda.generated.js', text, {encoding: 'utf8'}, function(err) {
+                if (err) {
+                    console.log(err);
+                    process.exit(300);
+                }
+                console.log('The following files were combined into \'dist/ramda.generated.js\':' +
+                    '\n    ' + keys.map(function(name) {return name + '.js';}).join('\n    '));
+            });
+        } else {
             console.log(err);
-            process.exit(300);
+            process.exit(700);
         }
-        console.log('The following files were combined into \'dist/ramda.generated.js\':' +
-            '\n    ' + keys.map(function(name) {return name + ".js";}).join('\n    '));
-    })
+    });
+
 };
 
 fs.readdir('src', function(err, files) {
@@ -77,9 +121,9 @@ fs.readdir('src', function(err, files) {
         }
     };
     (files || []).filter(function(filename) {return filename.endsWith('.js');})
-    .forEach(function(filename) {
-        count++;
-        process.nextTick(function() {handle(filename, contents, onComplete)});
-    });
+        .forEach(function(filename) {
+            count++;
+            process.nextTick(function() {handle(filename, contents, onComplete)});
+        });
 });
 

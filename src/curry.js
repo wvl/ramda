@@ -1,5 +1,5 @@
-var ramda = require('./core');
-var arity = ramda.arity, slice = ramda.slice;
+var core = require('./core');
+var arity = core.arity, slice = core.slice;
 
 // Returns a curried version of the supplied function.  For example:
 //
@@ -27,4 +27,3 @@ var curry = function(fn) {
 };
 
 module.exports = curry;
-

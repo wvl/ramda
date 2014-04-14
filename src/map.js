@@ -1,7 +1,7 @@
-var _ = require('./curry');
+var curry = require('./curry');
 
 // (Internal use only) The basic implementation of map.
-var internalMap = _(function(useIdx, fn, list) {
+var internalMap = curry(function(useIdx, fn, list) {
     if (list && list.length === Infinity) {
         return list.map(fn, list);
     }
