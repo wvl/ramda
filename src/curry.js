@@ -1,5 +1,6 @@
 var core = require('./core');
-var arity = core.arity, slice = core.slice;
+var arity = core.arity;
+var slice = core.slice;
 
 // Returns a curried version of the supplied function.  For example:
 //

@@ -22,13 +22,28 @@ var handle = function(filename, contents, onComplete) {
         var lines = str.split(/\r\n|\n|\r/);
         var needsExports = false;
         contents[name] = {
-            text: lines.filter(function(line) {
-                var match = line.match(/.*require\((?:'\.\/([^']*)'\)).*/);
+//            text: lines.filter(function(line) {
+//                // var match = line.match(/.*require\((?:'\.\/([^']*)'\)).*/);
+//                var match = line.match(/var\s+([^\s=]+)\s*=\s*require\('\.\/([^']+)'\);?/);
+//
+//                if (match) {
+//                    dependencies.push(match[2]);
+//                    return false;
+//                }
+//                return true;
+            text: lines.map(function(line) {
+                // var match = line.match(/.*require\((?:'\.\/([^']*)'\)).*/);
+                var match = line.match(/var(\s+)([^\s=]+)(\s*)=(\s*)require\('\.\/([^']+)'\)(.*)/);
+
                 if (match) {
-                    dependencies.push(match[1]);
-                    return false;
+                    dependencies.push(match[5]);
+                    if (match[2] === match[5]) {
+                        return null;
+                    } else {
+                        return 'var' + match[1] + match[2] + match[3] + '=' + match[4] + match[5] + match[6];
+                    }
                 }
-                return true;
+                return line;
             }).join('\n').replace(/module\.exports\s*=\s*{([^}]+)};?/m, function(exports, lines) {
                 needsExports = true;
                 return 'var ' + name + ' = {' + lines + '};';

@@ -1,7 +1,7 @@
-var curry = require('./curry');
+var _ = require('./curry');
 
 // (Internal use only) The basic implementation of filter.
-var internalFilter = curry(function(useIdx, fn, list) {
+var internalFilter = _(function(useIdx, fn, list) {
     if (list && list.length === Infinity) {
         return list.filter(fn); // TODO: figure out useIdx
     }
