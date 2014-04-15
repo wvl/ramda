@@ -14,23 +14,11 @@ if (typeof String.prototype.endsWith !== 'function') {
 var handle = function(filename, contents, onComplete) {
     var name = filename.slice(0, filename.length - 3);
     fs.readFile('src/' + filename, {encoding: 'utf8'}, function(err, str) {
-        if (err) {
-            console.log(err);
-            process.exit(200);
-        }
+        if (err) {throw err;}
         var dependencies = [];
         var lines = str.split(/\r\n|\n|\r/);
         var needsExports = false;
         contents[name] = {
-//            text: lines.filter(function(line) {
-//                // var match = line.match(/.*require\((?:'\.\/([^']*)'\)).*/);
-//                var match = line.match(/var\s+([^\s=]+)\s*=\s*require\('\.\/([^']+)'\);?/);
-//
-//                if (match) {
-//                    dependencies.push(match[2]);
-//                    return false;
-//                }
-//                return true;
             text: lines.map(function(line) {
                 // var match = line.match(/.*require\((?:'\.\/([^']*)'\)).*/);
                 var match = line.match(/var(\s+)([^\s=]+)(\s*)=(\s*)require\('\.\/([^']+)'\)(.*)/);
@@ -64,7 +52,7 @@ var getSortOrder = function(contents) {
         return contents[key].dependencies.length === 0;
     }).reduce(function(obj, key) {obj[key] = true; return obj; }, {});
     while (Object.keys(dependencyFree).length) {
-        var currentKey = Object.keys(dependencyFree)[0];
+        var currentKey = Object.keys(dependencyFree).sort()[0];
         sorted.push(currentKey);
         delete dependencyFree[currentKey];
         allKeys.forEach(function(key) {
@@ -81,8 +69,7 @@ var getSortOrder = function(contents) {
         delete contents[key].dependencies;
         return memo.concat(contents[key].dependencies || []);
     }, []).length) {
-        console.log("Cyclic dependency found");
-        process.exit(400);
+        throw new Error("Cyclic dependency found");
     }
     return sorted;
 };
@@ -108,37 +95,36 @@ var handleOutput = function(contents) {
     fs.mkdir("dist", function(err) {
         if (!err || (err.code === 'EEXIST')) {
             fs.writeFile('dist/ramda.generated.js', text, {encoding: 'utf8'}, function(err) {
-                if (err) {
-                    console.log(err);
-                    process.exit(300);
-                }
+                if (err) {throw err;}
                 console.log('The following files were combined into \'dist/ramda.generated.js\':' +
                     '\n    ' + keys.map(function(name) {return name + '.js';}).join('\n    '));
             });
         } else {
-            console.log(err);
-            process.exit(700);
+            throw err;
         }
     });
 
 };
 
-fs.readdir('src', function(err, files) {
-    var count = 0;
-    var contents = {};
-    if (err) {
+(function main() {
+    try {
+        fs.readdir('src', function(err, files) {
+            var count = 0;
+            var contents = {};
+            if (err) {throw err;}
+            var onComplete = function() {
+                if (--count <= 0) {
+                    handleOutput(contents);
+                }
+            };
+            (files || []).filter(function(filename) {return filename.endsWith('.js');})
+                .forEach(function(filename) {
+                    count++;
+                    process.nextTick(function() {handle(filename, contents, onComplete)});
+                });
+        });
+    } catch(err) {
         console.log(err);
         process.exit(100);
     }
-    var onComplete = function() {
-        if (--count <= 0) {
-            handleOutput(contents);
-        }
-    };
-    (files || []).filter(function(filename) {return filename.endsWith('.js');})
-        .forEach(function(filename) {
-            count++;
-            process.nextTick(function() {handle(filename, contents, onComplete)});
-        });
-});
-
+}());
