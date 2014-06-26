@@ -1,3 +1,5 @@
+//! tag: core
+
 // `slice` implemented iteratively for performance
 var slice = function (args, from, to) {
     var i, arr = [];

@@ -1,3 +1,4 @@
+//! tags: lists, math
 var curry = require('./curry');
 var slice = require('./core').slice;
 

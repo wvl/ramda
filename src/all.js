@@ -1,4 +1,5 @@
 var curry = require('./curry');
+//! tag: list
 
 // Returns `true` if all elements of the list match the predicate, `false` if there are any that don't.
 var all = curry(function (fn, list) {

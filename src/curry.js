@@ -1,3 +1,5 @@
+//! tag: core
+
 var core = require('./core');
 var arity = core.arity;
 var slice = core.slice;

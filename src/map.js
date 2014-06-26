@@ -1,3 +1,4 @@
+//! tag: lists
 var curry = require('./curry');
 
 // (Internal use only) The basic implementation of map.

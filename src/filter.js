@@ -1,3 +1,4 @@
+//! tags: lists, sql
 var _ = require('./curry');
 
 // (Internal use only) The basic implementation of filter.

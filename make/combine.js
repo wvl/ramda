@@ -16,13 +16,14 @@ if (typeof String.prototype.endsWith !== 'function') {
     };
 }
 
-var handle = function(filename, contents) {
-    var name = filename.slice(0, filename.length - 3);
+var handleFile = function(filename, contents) {
+    var name = filename.slice(0, -3);
     return readFile('src/' + filename, {encoding: 'utf8'})
     .then(function(str) {
         var dependencies = [];
         var lines = str.split(/\r\n|\n|\r/);
         var needsExports = false;
+            var tags = {};
         contents[name] = {
             text: lines.map(function(line) {
                 // var match = line.match(/.*require\((?:'\.\/([^']*)'\)).*/);
@@ -36,6 +37,13 @@ var handle = function(filename, contents) {
                         return 'var' + match[1] + match[2] + match[3] + '=' + match[4] + match[5] + match[6];
                     }
                 }
+                match = line.match(/^\s*\/\/\!\s*tags?\s*:\s*(.+)$/i);
+
+                if (match) {
+                    match[1].split(/\s*,\s*/).forEach(function(tag) {tags[tag] = true;});
+                    return null;
+                }
+
                 return line;
             }).join('\n').replace(/module\.exports\s*=\s*{([^}]+)};?/m, function(exports, lines) {
                 needsExports = true;
@@ -45,6 +53,7 @@ var handle = function(filename, contents) {
             }),
             dependencies: dependencies,
             filename: filename,
+            tags: Object.keys(tags).sort(),
             needsExports: needsExports
         };
     })
@@ -112,15 +121,18 @@ var handleOutput = function(contents) {
     });
 };
 
+// TODO: slurp the tags from the command line
+var includedTags = ["math, sql"];
 
 (function main() {
-    var contents = {};
+    var contents = {includedTags: includedTags};
     readdir('src').then(function(files) {
         return (files || []).filter(function(filename) {return filename.endsWith('.js');});
     }).then(function(jsFiles) {
-        return Q.all(jsFiles.map(function(filename) {return handle(filename, contents)}));
+        return Q.all(jsFiles.map(function(filename) {return handleFile(filename, contents)}));
     }).then(function() {
-        handleOutput(contents);
+        console.log(JSON.stringify(contents, null, 4));
+        handleOutput(contents, includedTags);
     }).catch(function(error) {
         console.log(error);
         process.exit(100);
