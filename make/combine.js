@@ -1,4 +1,9 @@
-var fs = require('fs');
+var FS = require('fs');
+var Q = require("q");
+var readdir = Q.denodeify(FS.readdir);
+var readFile = Q.denodeify(FS.readFile);
+var writeFile = Q.denodeify(FS.writeFile);
+var mkdir = Q.denodeify(FS.mkdir);
 
 var header = 'var ramda = (function() {' + '\nvar ramda = {};\n\n';
 var footer = '\n' + '    return ramda;' + '\n\n' + '}());';
@@ -11,10 +16,10 @@ if (typeof String.prototype.endsWith !== 'function') {
     };
 }
 
-var handle = function(filename, contents, onComplete) {
+var handle = function(filename, contents) {
     var name = filename.slice(0, filename.length - 3);
-    fs.readFile('src/' + filename, {encoding: 'utf8'}, function(err, str) {
-        if (err) {throw err;}
+    return readFile('src/' + filename, {encoding: 'utf8'})
+    .then(function(str) {
         var dependencies = [];
         var lines = str.split(/\r\n|\n|\r/);
         var needsExports = false;
@@ -42,7 +47,6 @@ var handle = function(filename, contents, onComplete) {
             filename: filename,
             needsExports: needsExports
         };
-        onComplete();
     })
 };
 
@@ -92,39 +96,33 @@ var handleOutput = function(contents) {
             + contents[key].text.split('\n').join('\n    ') +
             (contents[key].needsExports ? '\n\n' + '    return ' + key + ';' : '') + fileFooter;
     }).join('\n\n')).split('\n').join('\n    ') + footer;
-    fs.mkdir("dist", function(err) {
-        if (!err || (err.code === 'EEXIST')) {
-            fs.writeFile('dist/ramda.generated.js', text, {encoding: 'utf8'}, function(err) {
-                if (err) {throw err;}
-                console.log('The following files were combined into \'dist/ramda.generated.js\':' +
-                    '\n    ' + keys.map(function(name) {return name + '.js';}).join('\n    '));
-            });
-        } else {
-            throw err;
-        }
+    var dirCreated = false;
+    return mkdir("dist")
+    .then(function() {
+        dirCreated = true;
+    }).catch(function(err) {
+        dirCreated =  (!err || (err.code === 'EEXIST'))
+    }).done(function() {
+        return dirCreated ? writeFile('dist/ramda.generated.js', text, {encoding: 'utf8'}).then(function() {
+            console.log('The following files were combined into \'dist/ramda.generated.js\':' +
+                '\n    ' + keys.map(function (name) {
+                return name + '.js';
+            }).join('\n    '));
+        }) : Q.fcall(function() {return false;});
     });
-
 };
 
+
 (function main() {
-    try {
-        fs.readdir('src', function(err, files) {
-            var count = 0;
-            var contents = {};
-            if (err) {throw err;}
-            var onComplete = function() {
-                if (--count <= 0) {
-                    handleOutput(contents);
-                }
-            };
-            (files || []).filter(function(filename) {return filename.endsWith('.js');})
-                .forEach(function(filename) {
-                    count++;
-                    process.nextTick(function() {handle(filename, contents, onComplete)});
-                });
-        });
-    } catch(err) {
-        console.log(err);
+    var contents = {};
+    readdir('src').then(function(files) {
+        return (files || []).filter(function(filename) {return filename.endsWith('.js');});
+    }).then(function(jsFiles) {
+        return Q.all(jsFiles.map(function(filename) {return handle(filename, contents)}));
+    }).then(function() {
+        handleOutput(contents);
+    }).catch(function(error) {
+        console.log(error);
         process.exit(100);
-    }
+    }).done();
 }());
