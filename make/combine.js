@@ -59,8 +59,33 @@ var handleFile = function(filename, contents) {
     })
 };
 
-var getSortOrder = function(contents) {
-    var allKeys = Object.keys(contents);
+var intersection = function(list1, list2) {
+    return list1.filter(function(n) {
+        return list2.indexOf(n) != -1
+    });
+};
+
+var clone = function(obj) {
+    return JSON.parse(JSON.stringify(obj));
+};
+
+var recurseDependencies = function(parsed, toAdd, contents) {
+    results = clone(parsed);
+    toAdd.forEach(function(newKey) {
+        if (!parsed[newKey]) {
+            parsed[newKey] = true;
+            parsed = recurseDependencies(parsed, contents[newKey].dependencies, contents);
+        }
+    });
+    return parsed;
+}
+
+var getSortOrder = function(contents, initialTags) {
+    // var allKeys = Object.keys(contents);
+    var initialKeys = Object.keys(contents).filter(function(key) {
+        return intersection(contents[key].tags, initialTags).length > 0;
+    });
+    var allKeys = Object.keys(recurseDependencies({}, initialKeys, contents));
     var sorted = [], dependencyFree = allKeys.filter(function(key){
         return contents[key].dependencies.length === 0;
     }).reduce(function(obj, key) {obj[key] = true; return obj; }, {});
@@ -97,9 +122,9 @@ var invertDependencies = function(contents) {
     return results;
 };
 
-var handleOutput = function(contents) {
+var handleOutput = function(contents, includedTags) {
     var crissCross = invertDependencies(contents);
-    var keys = getSortOrder(contents);
+    var keys = getSortOrder(contents, includedTags);
     var text = (header + keys.map(function(key) {
         return (crissCross[key] ? 'var ' + key + ' = ' : '') + 'ramda.' + key + ' = ' + fileHeader + '    '
             + contents[key].text.split('\n').join('\n    ') +
@@ -122,16 +147,18 @@ var handleOutput = function(contents) {
 };
 
 // TODO: slurp the tags from the command line
-var includedTags = ["math, sql"];
+var includedTags = ["math", "sql"];
 
 (function main() {
-    var contents = {includedTags: includedTags};
+    console.log('Building ramda package for the following tags: ' + includedTags.join(', '));
+    console.log('');
+    var contents = {};
     readdir('src').then(function(files) {
         return (files || []).filter(function(filename) {return filename.endsWith('.js');});
     }).then(function(jsFiles) {
         return Q.all(jsFiles.map(function(filename) {return handleFile(filename, contents)}));
     }).then(function() {
-        console.log(JSON.stringify(contents, null, 4));
+        // console.log(JSON.stringify(contents, null, 4));
         handleOutput(contents, includedTags);
     }).catch(function(error) {
         console.log(error);
