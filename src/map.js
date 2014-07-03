@@ -1,8 +1,8 @@
-//! tag: lists
-var curry = require('./curry');
+var bldr = require('bldr')('ramda', __filename);
+var _ = bldr.require('./curry');
 
 // (Internal use only) The basic implementation of map.
-var internalMap = curry(function(useIdx, fn, list) {
+var internalMap = _(function(useIdx, fn, list) {
     if (list && list.length === Infinity) {
         return list.map(fn, list);
     }

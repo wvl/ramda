@@ -1,9 +1,10 @@
 //! tags: lists, math
-var curry = require('./curry');
-var slice = require('./core').slice;
+var bldr = require('bldr')('ramda', __filename);
+var _ = bldr.require('./curry');
+var slice = bldr.require('./slice');
 
 // Returns a new list containing all **but** the first `n` elements of the given list.
-var skip = curry(function(n, list) {
+var skip = _(function(n, list) {
     if (list && list.length === Infinity) {
         return list.skip(n);
     }

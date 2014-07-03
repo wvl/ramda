@@ -15,11 +15,14 @@
     "type": "git",
     "url": "git://github.com/CrossEye/ramda.git"
   },
-  "main": "ramda.js",
+  "main": "src/ramda.js",
   "scripts": {
+    "build": "./build.sh",
     "test": "grunt test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "bldr": "^0.3.0"
+  },
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.7",

@@ -1,5 +1,5 @@
-//! tags: lists, sql
-var _ = require('./curry');
+var bldr = require('bldr')('ramda', __filename);
+var _ = bldr.require('./curry');
 
 // (Internal use only) The basic implementation of filter.
 var internalFilter = _(function(useIdx, fn, list) {

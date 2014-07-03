@@ -1,8 +1,6 @@
-//! tag: core
-
-var core = require('./core');
-var arity = core.arity;
-var slice = core.slice;
+var bldr = require('bldr')('ramda', __filename);
+var arity = bldr.require('./arity');
+var slice = bldr.require('./slice');
 
 // Returns a curried version of the supplied function.  For example:
 //
@@ -14,7 +12,7 @@ var slice = core.slice;
 //      i(4) ≅ h(4) == g(7, 4) == f(3, 7, 4) == 1
 //
 //  Almost all exposed functions of more than one parameter already have curry applied to them.
-var curry = function(fn) {
+var _  = function(fn) {
     var fnArity = fn.length;
     var f = function(args) {
         return arity(Math.max(fnArity - (args && args.length || 0), 0), function () {
@@ -29,4 +27,4 @@ var curry = function(fn) {
     return f([]);
 };
 
-module.exports = curry;
+module.exports = _;

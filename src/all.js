@@ -1,8 +1,8 @@
-var curry = require('./curry');
-//! tag: list
+var bldr = require('bldr')('ramda', __filename);
+var _ = bldr.require('./curry');
 
 // Returns `true` if all elements of the list match the predicate, `false` if there are any that don't.
-var all = curry(function (fn, list) {
+var all = _(function (fn, list) {
     var i = -1;
     while (++i < list.length) {
         if (!fn(list[i])) {
