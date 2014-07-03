@@ -1,8 +1,8 @@
-var assert = require("assert");
-var Lib = require("./../ramda");
+var assert = typeof window !== 'undefined' ? window.assert : require('assert');
+var ramda = typeof window !== 'undefined' ? window.ramda : require('../src/ramda');
 
 describe('map', function() {
-    var map = Lib.map;
+    var map = ramda.map;
     var times2 = function(x) {return x * 2;};
     var add1 = function(x) {return x + 1;};
 
@@ -23,7 +23,7 @@ describe('map', function() {
 });
 
 describe('map.idx', function() {
-    var map = Lib.map;
+    var map = ramda.map;
     var times2 = function(x) {return x * 2;};
     var addIdx = function(x, idx) {return x + idx;};
     var squareEnds = function(x, idx, list) {
