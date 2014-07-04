@@ -21,17 +21,18 @@
     "test": "grunt test"
   },
   "dependencies": {
-    "bldr": "^0.3.0"
+    "bldr": "~0.3.2"
   },
   "devDependencies": {
+    "docopt": "^0.4.0",
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.7",
-    "grunt-mocha": "~0.3.4",
-    "grunt-docco": "latest",
     "grunt-contrib-jshint": "~0.7.0",
     "grunt-contrib-uglify": "~0.2.2",
-    "grunt-mocha-test": "~0.5.0",
+    "grunt-docco": "latest",
     "grunt-istanbul": "~0.2.4",
+    "grunt-mocha": "~0.3.4",
+    "grunt-mocha-test": "~0.5.0",
     "q": "~1.0.0"
   },
   "extraDevDependencies -- if we want to use Gulp": {

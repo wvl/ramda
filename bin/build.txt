@@ -1,0 +1,10 @@
+Usage: build.js [--tags=<tags>] [--output=<outputfile>]
+
+Example:
+  build.js --tags=core,list,math --output=dist/ramda.mine.js
+
+Options:
+  -h --help                      Show this help
+  -v --version                   Show version and exit
+  -t <tags> --tags=<tags>        List of tags to build, comma separated list
+  -o <output> --output=<output>  Output to file, stdout if not given

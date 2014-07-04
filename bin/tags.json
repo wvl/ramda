@@ -1,0 +1,6 @@
+{
+  "core": ["mkArgStr","slice","arity","nAry","curry"],
+  "list": ["map","filter","skip"],
+  "math": ["skip"],
+  "sql": ["filter"]
+}
