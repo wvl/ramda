@@ -2,7 +2,7 @@
 var path = require('path');
 var fs = require('fs');
 var docopt = require('docopt').docopt;
-var bldr = require('bldr')('ramda', __filename, {appDir: path.join('..','src')});
+var loadstar = require('loadstar')('ramda', __filename, {appDir: path.join('..','src')});
 
 var package = require('../package');
 var doc = fs.readFileSync(path.join(__dirname, 'build.txt'), 'utf8');
@@ -14,11 +14,11 @@ var tags = result['--tags'] ? result['--tags'].split(',') : Object.keys(tagStruc
 
 tags.forEach(function(tag) {
   tagStructure[tag].forEach(function(file) {
-    bldr.define(path.join('..', 'src', file));
+    loadstar.define(path.join('..', 'src', file));
   });
 });
 
-var ramda = bldr.make({amd: 'ramda'});
+var ramda = loadstar.make({amd: 'ramda'});
 
 if (result['--output']) {
   fs.writeFileSync(result['--output'], ramda, 'utf8');

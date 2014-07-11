@@ -1,13 +1,13 @@
-var bldr = require('bldr')('ramda', __filename);
+var loadstar = require('loadstar')('ramda', __filename);
 // core
-bldr.define('./mkArgStr');
-bldr.define('./slice');
-bldr.define('./arity');
-bldr.define('./nAry');
+loadstar.define('./mkArgStr');
+loadstar.define('./slice');
+loadstar.define('./arity');
+loadstar.define('./nAry');
 
-bldr.define('./curry');
-bldr.define('./map');
-bldr.define('./all');
-bldr.define('./skip');
-bldr.define('./filter');
-module.exports = bldr.ramda;
+loadstar.define('./curry');
+loadstar.define('./map');
+loadstar.define('./all');
+loadstar.define('./skip');
+loadstar.define('./filter');
+module.exports = loadstar.ramda;

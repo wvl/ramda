@@ -1,5 +1,5 @@
-var bldr = require('bldr')('ramda', __filename);
-var mkArgStr = bldr.require('./mkArgStr');
+var loadstar = require('loadstar')('ramda', __filename);
+var mkArgStr = loadstar.require('./mkArgStr');
 
 // Wraps a function that may be nullary, or may take fewer than or more than `n` parameters, in a function that
 // specifically takes exactly `n` parameters.  Note, though, that all parameters supplied will in fact be

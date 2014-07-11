@@ -1,6 +1,6 @@
-var bldr = require('bldr')('ramda', __filename);
-var arity = bldr.require('./arity');
-var slice = bldr.require('./slice');
+var loadstar = require('loadstar')('ramda', __filename);
+var arity = loadstar.require('./arity');
+var slice = loadstar.require('./slice');
 
 // Returns a curried version of the supplied function.  For example:
 //

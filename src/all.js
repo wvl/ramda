@@ -1,5 +1,5 @@
-var bldr = require('bldr')('ramda', __filename);
-var _ = bldr.require('./curry');
+var loadstar = require('loadstar')('ramda', __filename);
+var _ = loadstar.require('./curry');
 
 // Returns `true` if all elements of the list match the predicate, `false` if there are any that don't.
 var all = _(function (fn, list) {

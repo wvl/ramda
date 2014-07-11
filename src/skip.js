@@ -1,7 +1,7 @@
 //! tags: lists, math
-var bldr = require('bldr')('ramda', __filename);
-var _ = bldr.require('./curry');
-var slice = bldr.require('./slice');
+var loadstar = require('loadstar')('ramda', __filename);
+var _ = loadstar.require('./curry');
+var slice = loadstar.require('./slice');
 
 // Returns a new list containing all **but** the first `n` elements of the given list.
 var skip = _(function(n, list) {
